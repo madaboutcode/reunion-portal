@@ -1,0 +1,90 @@
+# OWNER of Cloudflare infrastructure: Worker names, routes, D1 database names and IDs,
+# R2 bucket names and the account ID, per environment. Top level = staging (stg),
+# [env.production] = production (prod). Ops scripts, deploy.sh and the Claude skills read
+# these through scripts/site_config.py; nothing else repeats them. Do not put secrets here.
+#
+# TEMPLATE: replace every REPLACE_WITH_* value, plus the domains, Worker names and bucket
+# names below, before deploying. See README.md "Deploy from zero". `make doctor` lists what
+# is left, and checks that the route hosts below agree with site.config.json.
+#
+# Not here, on purpose:
+#   - site/CDN URLs, event name, sender name, GitHub repo, Cloudflare Pages project names:
+#     site.config.json. There is NO [vars] section: scripts/deploy.sh reads site.config.json
+#     and passes APP_BASE_URL, PUBLIC_THUMBS_URL, PUBLIC_PORTRAITS_URL and SENDER_NAME to
+#     `wrangler deploy --var KEY:VALUE`. The Worker returns a 500 config error when
+#     APP_BASE_URL is missing, so a plain `wrangler deploy` that skips deploy.sh fails
+#     closed. Local dev gets localhost values from src/server/.dev.vars.
+#     `make doctor` fails if a URL var is added back here.
+#   - tokens and API keys: .env.ops (agent token), CI secret / your shell (deploy token).
+# Not inherited by [env.production] (wrangler rule): routes and bindings. Write them
+# out under [env.production]. account_id is inherited, so it is set once at the top level.
+#
+# ── Staging (default) ─────────────────────────────────────────────────────────
+# Top-level config = staging. `wrangler dev` and `wrangler deploy` use this.
+# Production is [env.production]: deploy with `--env production`.
+
+name = "stg-smriti26-api"
+main = "src/index.ts"
+compatibility_date = "2025-05-18"
+account_id = "REPLACE_WITH_ACCOUNT_ID"
+
+routes = [
+  { pattern = "beta.smriti2026.com/api/*", zone_name = "smriti2026.com" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "smriti-26-stg"
+database_id = "REPLACE_WITH_STAGING_D1_DATABASE_ID"
+migrations_dir = "migrations"
+migrations_table = "d1_migrations"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "smriti-26-stg"
+
+[[r2_buckets]]
+binding = "PUBLIC_THUMBS"
+bucket_name = "smriti-26-thumbs-stg"
+
+[images]
+binding = "IMAGES"
+
+[[rules]]
+type = "Data"
+globs = ["**/*.pdf", "**/*.ttf"]
+fallthrough = true
+
+[dev]
+port = 8787
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# ── Production ────────────────────────────────────────────────────────────────
+# Deploy with: wrangler deploy --env production
+
+[env.production]
+name = "prod-smriti26-api"
+routes = [
+  { pattern = "smriti2026.com/api/*", zone_name = "smriti2026.com" }
+]
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "smriti-26-prod"
+database_id = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
+migrations_dir = "migrations"
+migrations_table = "d1_migrations"
+
+[[env.production.r2_buckets]]
+binding = "STORAGE"
+bucket_name = "smriti-26-prod"
+
+[[env.production.r2_buckets]]
+binding = "PUBLIC_THUMBS"
+bucket_name = "smriti-26-thumbs-prod"
+
+[env.production.images]
+binding = "IMAGES"

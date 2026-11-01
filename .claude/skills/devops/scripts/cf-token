@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Check that the Cloudflare agent token resolves, without printing the token.
+#
+# Usage:
+#   cf-token             report whether the token is set, and where it was found (shows first 4 and last 2 characters only)
+#   cf-token --verify    also ask Cloudflare whether the token is valid (one HTTPS request)
+#   cf-token --help
+#
+# This script never prints the full token and has no option to. The token is
+# CLOUDFLARE_API_TOKEN from the process environment, else from .env.ops. That is the
+# AGENT token (D1, R2 read, Workers tail). The deploy token is separate: it is never
+# stored in .env.ops (see SKILL.md, "Tokens").
+set -euo pipefail
+
+case "${1:-}" in
+  -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  ""|--verify) ;;
+  *) echo "error: unknown option '$1' (this script has no way to print the token)" >&2; exit 1 ;;
+esac
+
+SC="$(cd "$(dirname "$0")/../../../.." && pwd)/scripts/site-config"
+"$SC" secret-set CLOUDFLARE_API_TOKEN >/dev/null || exit 1
+SOURCE="$("$SC" secret-set CLOUDFLARE_API_TOKEN | sed 's/.*(from \(.*\))/\1/')"
+TOKEN="$("$SC" get global CLOUDFLARE_API_TOKEN --reveal)"
+
+echo "CLOUDFLARE_API_TOKEN is set (${TOKEN:0:4}...${TOKEN: -2}, ${#TOKEN} characters, from ${SOURCE})"
+
+if [[ "${1:-}" == "--verify" ]]; then
+  # Browser-like User-Agent: Cloudflare may answer 403 (error 1010) to unusual agents.
+  curl -s -H "Authorization: Bearer $TOKEN" -H "User-Agent: Mozilla/5.0 (compatible; reunion-portal-ops/1.0)" \
+    https://api.cloudflare.com/client/v4/user/tokens/verify \
+    | python3 -c 'import sys,json; d=json.load(sys.stdin); r=d.get("result") or {}; print("verify:", "OK, status=" + str(r.get("status")) if d.get("success") else d.get("errors"))'
+fi

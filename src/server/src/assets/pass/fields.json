@@ -1,0 +1,53 @@
+{
+  "pageSize": { "width": 420, "height": 945 },
+  "fields": {
+    "qr": {
+      "centerX": 210,
+      "y": 348,
+      "size": 255,
+      "padding": 18
+    },
+    "regCode": {
+      "centerX": 210,
+      "y": 672,
+      "fontSize": 27,
+      "fontWeight": "bold",
+      "color": "#236E74",
+      "letterSpacing": 1.5,
+      "pill": {
+        "color": "rgba(185,223,226,0.25)",
+        "paddingX": 20,
+        "paddingY": 6,
+        "radius": 8
+      }
+    },
+    "name": {
+      "centerX": 210,
+      "y": 723,
+      "fontSize": 27,
+      "fontWeight": "bold",
+      "color": "#171B1F"
+    },
+    "attendees": {
+      "centerX": 210,
+      "y": 750,
+      "fontSize": 18,
+      "fontWeight": "semibold",
+      "color": "#4A4A4A"
+    },
+    "participationType": {
+      "centerX": 210,
+      "y": 774,
+      "fontSize": 15,
+      "fontWeight": "regular",
+      "color": "#D76B51"
+    },
+    "accommodation": {
+      "centerX": 210,
+      "y": 796,
+      "fontSize": 16.5,
+      "fontWeight": "regular",
+      "color": "#6B7280"
+    }
+  }
+}

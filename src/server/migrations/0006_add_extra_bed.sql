@@ -1,0 +1,1 @@
+ALTER TABLE registrations ADD COLUMN extra_bed INTEGER NOT NULL DEFAULT 0;

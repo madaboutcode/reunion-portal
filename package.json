@@ -1,0 +1,27 @@
+{
+  "name": "smriti-portal",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "src/shared",
+    "src/web",
+    "src/server"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev-all.mjs",
+    "db:migrate:local": "npx -w @smriti/server wrangler d1 migrations apply DB --local",
+    "dev:web": "npm -w @smriti/portal run dev",
+    "dev:server": "npm -w @smriti/server run dev",
+    "build": "npm -w @smriti/portal run build",
+    "typecheck": "npm -w @smriti/portal run typecheck && npm -w @smriti/server run typecheck",
+    "typecheck:web": "npm -w @smriti/portal run typecheck",
+    "typecheck:server": "npm -w @smriti/server run typecheck",
+    "lint": "npm -w @smriti/portal run lint",
+    "test:server": "npm -w @smriti/server run test",
+    "check": "npm -w @smriti/portal run typecheck && npm -w @smriti/server run typecheck && npm -w @smriti/portal run lint"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3"
+  }
+}

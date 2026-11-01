@@ -1,0 +1,244 @@
+{
+  "version": 1,
+  "elements": {
+    "college": {
+      "z": 10,
+      "kind": "sprite_alpha",
+      "asset": "college",
+      "x": 30.2,
+      "y": 60.6,
+      "w": 21.4,
+      "h": 16.6
+    },
+    "paper_plane_mint_top": {
+      "z": 20,
+      "kind": "nostalgia_opaque",
+      "asset": "paper_plane_mint",
+      "x": 36.7,
+      "y": 77.1,
+      "w": 7.6,
+      "h": 4.4
+    },
+    "sparkle_mint_top": {
+      "z": 21,
+      "kind": "nostalgia_opaque",
+      "asset": "sparkle_mint",
+      "x": 33.0,
+      "y": 79.0,
+      "w": 2.3,
+      "h": 2.4
+    },
+    "event_line_title": {
+      "z": 30,
+      "kind": "text_static",
+      "text": "SMRITI 2026",
+      "font": "display",
+      "max_size": 15.0,
+      "min_size": 12.0,
+      "center_x": 15.5,
+      "baseline": 46.0,
+      "max_width": 22.5,
+      "char_space": 0.15,
+      "color": "ivory"
+    },
+    "event_line_batch": {
+      "z": 31,
+      "kind": "text_static",
+      "text": "TKMCE BATCH OF 2006",
+      "font": "regular",
+      "max_size": 8.4,
+      "min_size": 7.2,
+      "center_x": 15.5,
+      "baseline": 41.6,
+      "max_width": 22.5,
+      "char_space": 0.25,
+      "color": "ivory"
+    },
+    "event_line_anniversary": {
+      "z": 32,
+      "kind": "text_static",
+      "text": "20TH ANNIVERSARY REUNION",
+      "max_size": 6.8,
+      "min_size": 5.8,
+      "font": "regular",
+      "center_x": 15.5,
+      "baseline": 37.4,
+      "max_width": 22.5,
+      "char_space": 0.12,
+      "color": "ivory"
+    },
+    "divider_line": {
+      "z": 40,
+      "kind": "line",
+      "x1": 4.5,
+      "y1": 34.7,
+      "x2": 25.2,
+      "y2": 34.7,
+      "color": "mint",
+      "width": 0.55
+    },
+    "autograph_book": {
+      "z": 50,
+      "kind": "nostalgia_opaque",
+      "asset": "autograph_book",
+      "x": 3.6,
+      "y": 26.6,
+      "w": 13.5,
+      "h": 7.4
+    },
+    "tea_glass": {
+      "z": 51,
+      "kind": "nostalgia_opaque",
+      "asset": "tea_glass",
+      "x": 23.4,
+      "y": 27.0,
+      "w": 4.8,
+      "h": 7.5
+    },
+    "star_terracotta_mid": {
+      "z": 52,
+      "kind": "nostalgia_opaque",
+      "asset": "star_terracotta",
+      "x": 20.3,
+      "y": 32.6,
+      "w": 2.4,
+      "h": 2.5
+    },
+    "burst_terracotta_mid": {
+      "z": 53,
+      "kind": "nostalgia_opaque",
+      "asset": "burst_terracotta",
+      "x": 18.0,
+      "y": 34.8,
+      "w": 2.0,
+      "h": 2.0
+    },
+    "dot_mint_mid": {
+      "z": 54,
+      "kind": "nostalgia_opaque",
+      "asset": "dot_mint",
+      "x": 27.1,
+      "y": 37.0,
+      "w": 1.6,
+      "h": 1.6
+    },
+    "plus_terracotta_mid": {
+      "z": 55,
+      "kind": "nostalgia_opaque",
+      "asset": "plus_terracotta",
+      "x": 27.1,
+      "y": 47.1,
+      "w": 2.0,
+      "h": 2.1
+    },
+    "friends": {
+      "z": 60,
+      "kind": "nostalgia_opaque",
+      "asset": "friends",
+      "x": 3.0,
+      "y": 5.3,
+      "w": 15.6,
+      "h": 8.8
+    },
+    "cassette": {
+      "z": 61,
+      "kind": "nostalgia_opaque",
+      "asset": "cassette",
+      "x": 39.5,
+      "y": 2.5,
+      "w": 11.5,
+      "h": 5.9
+    },
+    "heart_mint_low": {
+      "z": 62,
+      "kind": "nostalgia_opaque",
+      "asset": "heart_mint",
+      "x": 40.2,
+      "y": 14.0,
+      "w": 2.5,
+      "h": 2.7
+    },
+    "plus_mint_low": {
+      "z": 63,
+      "kind": "nostalgia_opaque",
+      "asset": "plus_mint",
+      "x": 35.3,
+      "y": 12.0,
+      "w": 2.1,
+      "h": 2.1
+    },
+    "burst_terracotta_low": {
+      "z": 64,
+      "kind": "nostalgia_opaque",
+      "asset": "burst_terracotta",
+      "x": 37.1,
+      "y": 16.3,
+      "w": 2.0,
+      "h": 2.0
+    },
+    "set_square_faded": {
+      "z": 65,
+      "kind": "nostalgia_opaque",
+      "asset": "set_square_faded",
+      "x": 19.3,
+      "y": 2.7,
+      "w": 5.1,
+      "h": 4.2
+    },
+    "compass_faded": {
+      "z": 66,
+      "kind": "nostalgia_opaque",
+      "asset": "compass_faded",
+      "x": 25.4,
+      "y": 2.1,
+      "w": 5.1,
+      "h": 6.4
+    },
+    "logo": {
+      "z": 90,
+      "kind": "logo_alpha",
+      "x": 4.5,
+      "y": 52.3,
+      "w": 27.5,
+      "h": 27.5
+    }
+  },
+  "dynamic": {
+    "photo_box": {
+      "x": 29.5,
+      "y": 26.2,
+      "w": 21.5,
+      "h": 34.0,
+      "corner_radius": 3.0
+    },
+    "name": {
+      "font": "heavy",
+      "max_size": 19.5,
+      "min_size": 11.5,
+      "baseline": 19.1,
+      "max_width_margin": 6.0,
+      "char_space": 0.25,
+      "color": "ivory"
+    },
+    "branch": {
+      "font": "regular",
+      "max_size": 8.3,
+      "min_size": 6.3,
+      "baseline": 14.5,
+      "max_width_margin": 9.0,
+      "char_space": 0.3,
+      "color": "ivory"
+    },
+    "id_badge": {
+      "w": 15.5,
+      "h": 3.6,
+      "y": 8.9,
+      "font": "regular",
+      "max_size": 5.8,
+      "min_size": 5.0,
+      "width_margin": 2.0,
+      "char_space": 0.16,
+      "text_y_offset": 1.02
+    }
+  }
+}

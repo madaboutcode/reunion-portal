@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1F2A33" />
+    <!--
+      Security headers via meta: dev fallback. Production uses Cloudflare Pages _headers.
+      Referrer-Policy matches public/_headers to avoid surprise divergence.
+    -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!--
+      CSP meta tag: fallback for environments where _headers isn't applied (e.g., Vite dev).
+      In production, Cloudflare Pages _headers takes precedence.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' {{CDN_HOSTS}}; img-src 'self' data: blob: {{CDN_HOSTS}}; frame-src 'none'; object-src 'none'" />
+    <title>Smriti 2026 — TKMCE 20-Year Reunion | Register Now</title>
+    <meta name="description" content="Smriti — 20-year reunion of TKMCE Batch of 2006. Campus corridors to global paths and back to TKMCE once again. Register for the celebration on August 15th, 2026." />
+    <link rel="canonical" href="{{SITE_URL}}/" />
+    <link rel="icon" type="image/png" href="/assets/smriti-logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/pwa/apple-touch-180.png" />
+    <!-- iOS Add-to-Home-Screen: standalone chrome + title (Safari has no install prompt) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- Light committee UI → dark status-bar glyphs. Only applies to the PWA. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Committee" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Smriti 2026" />
+    <meta property="og:title" content="Smriti 2026 — TKMCE 20-Year Reunion" />
+    <meta property="og:description" content="Campus corridors to global paths... and back to TKMCE once again. Register for the Batch of 2006 reunion on August 15th, 2026 at TKMCE, Kollam." />
+    <meta property="og:image" content="{{SITE_URL}}/assets/og-card.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="{{SITE_URL}}/" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Smriti 2026 — TKMCE 20-Year Reunion" />
+    <meta name="twitter:description" content="Campus corridors to global paths... and back to TKMCE once again. Register for August 15th, 2026." />
+    <meta name="twitter:image" content="{{SITE_URL}}/assets/og-card.jpg" />
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Smriti — TKMCE Batch of 2006, 20-Year Reunion",
+      "description": "20-year reunion celebration for TKM College of Engineering, Batch of 2006. Campus corridors to global paths and back to TKMCE once again.",
+      "startDate": "2026-08-15T09:00:00+05:30",
+      "endDate": "2026-08-15T22:00:00+05:30",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "TKM College of Engineering",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Kollam",
+          "addressRegion": "Kerala",
+          "addressCountry": "IN"
+        }
+      },
+      "organizer": {
+        "@type": "Organization",
+        "name": "Smriti 2026 Committee",
+        "url": "{{SITE_URL}}"
+      },
+      "image": "{{SITE_URL}}/assets/og-card.jpg",
+      "url": "{{SITE_URL}}",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Full Celebration",
+          "price": "8500",
+          "priceCurrency": "INR",
+          "url": "{{SITE_URL}}/register",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Campus Only",
+          "price": "5500",
+          "priceCurrency": "INR",
+          "url": "{{SITE_URL}}/register",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

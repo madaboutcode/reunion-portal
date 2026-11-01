@@ -1,0 +1,12 @@
+<svg width="116" height="34" viewBox="0 0 116 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <filter id="shadow" x="-12" y="-12" width="140" height="58" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#8F6E4F" flood-opacity="0.18"/>
+  </filter>
+  <g filter="url(#shadow)">
+    <path d="M7.3 5.2C20.7 3.1 35.1 4.6 48.7 3.8C62.5 3.1 76.5 1.7 90.2 3.7C96.6 4.7 103.7 3.7 109.6 6.3C107.5 12.2 110.3 19.3 108.7 25.5C92.5 26.7 76.3 29.9 60.1 29.2C43.2 28.4 26.1 31.2 9.4 28.8C8 21.1 7.1 13.1 7.3 5.2Z" fill="#EFD9AF"/>
+    <path d="M12.1 7.5C26.7 6.1 41.5 6.5 56.1 5.4C70.5 4.4 85.5 3.9 99.9 6.5" stroke="#DABF8F" stroke-opacity="0.55" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M15 23.9C29.1 25.2 43.8 24.5 57.9 23.6C72.1 22.6 87.2 20.8 101.3 23.1" stroke="#DABF8F" stroke-opacity="0.5" stroke-width="1" stroke-linecap="round"/>
+    <path d="M19.4 9.2L22.8 27" stroke="#D2AF72" stroke-opacity="0.28" stroke-width="1"/>
+    <path d="M95.9 5.9L97.5 24.6" stroke="#D2AF72" stroke-opacity="0.28" stroke-width="1"/>
+  </g>
+</svg>

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Stream live worker logs via wrangler tail.
+#
+# This is the primary tool for checking server errors — it shows full request
+# detail: HTTP status, path, method, console.log output, uncaught exceptions.
+#
+# Usage:
+#   worker-logs <stg|prod>                    stream all requests
+#   worker-logs prod --format json            JSON output (for piping/filtering)
+#   worker-logs prod --status error           only errors
+#
+# The environment is required: there is no default. Prod prints its target first.
+# The Worker name comes from src/server/wrangler.toml (site_config.py, key workerName).
+# The token comes from CLOUDFLARE_API_TOKEN in the process env or .env.ops (agent token:
+# it needs Workers Tail read).
+#
+# This streams LIVE — it shows requests as they arrive, not historical data.
+# For historical debugging, use audit-log or d1-query.
+#
+# Press Ctrl+C to stop.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PORTAL_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+SC="$PORTAL_ROOT/scripts/site-config"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || -z "${1:-}" ]]; then
+  sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+  [[ -z "${1:-}" ]] && exit 1 || exit 0
+fi
+env="$1"
+shift
+
+if [[ ! "$env" =~ ^(stg|prod)$ ]]; then
+  echo "error: environment must be 'stg' or 'prod' (got: $env). There is no default." >&2
+  exit 1
+fi
+
+cfg="$("$SC" env "$env" --keys workerName,siteUrl)" || exit 1
+eval "$cfg"
+tok="$("$SC" env "$env" --keys workerName --secret CLOUDFLARE_API_TOKEN)" || exit 1
+eval "$tok"; unset tok
+
+if [[ "$env" == "prod" ]]; then
+  printf 'TARGET [prod]\n  worker   : %s\n  site URL : %s\n' "$WORKER_NAME" "$SITE_URL" >&2
+fi
+
+npx -w @smriti/server --prefix "$PORTAL_ROOT" \
+  wrangler tail "$WORKER_NAME" "$@"

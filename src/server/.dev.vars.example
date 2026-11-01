@@ -1,0 +1,36 @@
+# Local development values for the API. `make dev` copies this file to src/server/.dev.vars
+# (git-ignored) the first time you run it, so you normally do not copy it yourself.
+# wrangler reads .dev.vars for local dev; never commit it. Deployed values are different:
+# secrets are set with `wrangler secret put`, and URLs come from site.config.json through
+# scripts/deploy.sh (see docs/DEPLOYMENT.md).
+
+# Required
+JWT_SECRET=any-string-at-least-32-characters-long
+
+# Optional locally: without these, no email is sent and the API prints each login link in its
+# terminal (local only; a deployed Worker never logs links, so deployed sites need Mailgun).
+# To send real mail you need a Mailgun account and a verified sending domain, plus SENDER_NAME below.
+MAILGUN_API_KEY=
+MAILGUN_DOMAIN=
+
+# Optional
+EMAIL_ALLOWED_DOMAINS=
+ENVIRONMENT=development
+# URLs and identity. REQUIRED: without APP_BASE_URL every API request returns a 500
+# config error. Deployed values come from site.config.json (scripts/deploy.sh passes
+# them to wrangler); these local values make printed login links open the local web
+# app (Vite, port 5173).
+APP_BASE_URL=http://localhost:5173
+SENDER_NAME=Reunion Portal (local)
+LOG_LEVEL=debug
+
+# Google Sheets — Prediction Contest Leaderboard
+# Without these, /api/datasources routes won't mount (no error, just 404)
+# GOOGLE_SA_KEY: base64-encode the service account JSON → base64 < service-account.json
+# GOOGLE_SPREADSHEET_ID: the ID from the sheet URL (between /d/ and /edit)
+GOOGLE_SA_KEY=
+GOOGLE_SPREADSHEET_ID=
+
+# Google Sheets — Committee Todo (separate workbook, SA shared as EDITOR)
+# Without it, /api/committee routes return 404. Tabs: `todo`, `users`.
+GOOGLE_COMMITTEE_SHEET_ID=

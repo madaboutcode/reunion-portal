@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "cards": [
+    {
+      "name": "SAMPLE PERSON",
+      "branch": "CIVIL ENGINEERING",
+      "photo_path": "../assets/sample-photo.webp",
+      "attendee_id": "0001"
+    },
+    {
+      "name": "SAMPLE PERSON",
+      "branch": "CIVIL ENGINEERING",
+      "photo_path": "../assets/sample-photo.webp",
+      "attendee_id": "0042"
+    },
+    {
+      "name": "SAMPLE PERSON",
+      "branch": "CIVIL ENGINEERING",
+      "photo_path": "../assets/sample-photo.webp",
+      "attendee_id": "9999"
+    }
+  ]
+}

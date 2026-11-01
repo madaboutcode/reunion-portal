@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Card Layout Editor — Template (wireframe)</title>
+<style>
+  /* ── design tokens ─────────────────────────────────────────────── */
+  :root {
+    --page-bg:      #f4f5f7;
+    --panel-bg:     #ffffff;
+    --panel-border: #d8dce1;
+    --ink:          #1f2a33;
+    --muted:        #6b7280;
+    --accent:       #d76b51;          /* terracotta (brand) */
+    --blue:         #2e6be6;          /* selection */
+    --red:          #d83a3a;          /* out-of-safe-area */
+    --amber:        #d97706;          /* unsaved dot */
+    --card-bg:      #fdfbf6;          /* ivory card face */
+    --card-border:  #c9ced4;
+    --el-border:    #9aa2ab;          /* placeholder box border */
+    --el-fill:      rgba(255, 255, 255, 0.55);
+    --btn-border:   #c3c9cf;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 14px;
+    min-width: 980px;               /* the 3-column layout is a desktop tool */
+  }
+
+  /* ── top bar ───────────────────────────────────────────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 18px;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--panel-border);
+  }
+  .topbar h1 { font-size: 15px; font-weight: 700; margin: 0; }
+  .topbar .spacer { flex: 1; }
+
+  .toggle { display: inline-flex; border: 1px solid var(--btn-border); border-radius: 6px; overflow: hidden; }
+  .toggle a, .toggle span {
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--panel-bg);
+  }
+  .toggle a:hover { background: #eef1f4; }
+  .toggle .active {
+    background: var(--accent);
+    color: #fff;
+    cursor: default;
+  }
+  .toggle .inactive { border-left: 1px solid var(--btn-border); }
+
+  .unsaved { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .unsaved .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
+
+  /* ── 3-column body ─────────────────────────────────────────────── */
+  .body { display: flex; align-items: stretch; }
+
+  /* ── left panel: layers + element list ─────────────────────────── */
+  .panel {
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-border);
+    padding: 14px 14px 18px;
+    width: 210px;
+    flex: none;
+  }
+  .panel h2 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  .layers { list-style: none; margin: 0 0 20px; padding: 0; }
+  .layers li { margin-bottom: 6px; font-size: 13px; }
+  .layers input { margin-right: 6px; }
+  .layers .layer-photo label { color: var(--muted); }
+  .layers .layer-doodles { font-weight: 600; }
+
+  .elem-list-head { margin-top: 22px; }
+  .elem-list { list-style: none; margin: 0; padding: 0; }
+  .elem-list li { padding: 4px 8px; margin-bottom: 2px; border-radius: 4px; font-size: 13px; }
+  .elem-list .clickable:hover { background: #eef1f4; cursor: pointer; }
+  .elem-list .selected { background: rgba(46, 107, 230, 0.10); color: var(--blue); font-weight: 600; }
+  .elem-list .more { color: var(--muted); font-style: italic; }
+  .panel-note { margin-top: 18px; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+  /* ── center: canvas ────────────────────────────────────────────── */
+  .canvas-col { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 18px 12px 14px; }
+  .canvas-col h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+
+  .card {
+    position: relative;
+    width: 378px;                    /* 54 mm × 7 px/mm */
+    height: 599px;                   /* 85.6 mm × 7 px/mm */
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(31, 42, 51, 0.12);
+    overflow: hidden;
+  }
+
+  /* dashed 2 mm safe-area guide (R14) — inset 14 px from every edge */
+  .safe-guide {
+    position: absolute;
+    left: 14px; top: 14px;
+    width: 350px; height: 571px;
+    border: 1.5px dashed #b7bec5;
+    pointer-events: none;
+  }
+
+  .card-caption { margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+
+  /* generic element placeholder box */
+  .el {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--el-border);
+    border-radius: 3px;
+    background: var(--el-fill);
+    font-size: 11px;
+    color: #4b5563;
+    cursor: grab;
+  }
+  .el .el-label { pointer-events: none; }
+
+  /* selection (R11) */
+  .el.selected {
+    border: 2px solid var(--blue);
+    background: rgba(46, 107, 230, 0.07);
+    color: var(--blue);
+    box-shadow: 0 0 0 1px rgba(46, 107, 230, 0.35);
+  }
+
+  /* out-of-safe-area flag (R15) — advisory only */
+  .el.oob {
+    border: 2px solid var(--red);
+    background: rgba(216, 58, 58, 0.06);
+    color: var(--red);
+    box-shadow: 0 0 0 1px rgba(216, 58, 58, 0.35);
+  }
+
+  /* corner tags */
+  .el-tag {
+    position: absolute;
+    top: -10px;
+    left: -1px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #fff;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .el-tag.blue  { background: var(--blue); }
+  .el-tag.red   { background: var(--red); }
+  .el-tag.grey  { background: #5b6470; }
+
+  /* text placeholders on the card */
+  .field {
+    position: absolute;
+    pointer-events: none;
+  }
+  .field.title { font-weight: 800; font-size: 20px; letter-spacing: 0.18em; color: #333c46; }
+  .field.name  { font-weight: 700; font-size: 18px; letter-spacing: 0.10em; color: #37404a; }
+  .field.branch{ font-size: 14px;  letter-spacing: 0.08em; color: #4b5563; }
+
+  .id-badge {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--el-border);
+    border-radius: 4px;
+    background: var(--el-fill);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: #4b5563;
+  }
+
+  /* ── right panel: inspector ────────────────────────────────────── */
+  .inspector {
+    background: var(--panel-bg);
+    border-left: 1px solid var(--panel-border);
+    padding: 14px 14px 18px;
+    width: 250px;
+    flex: none;
+  }
+  .inspector h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+  .inspector .selected-name { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+
+  .ctrl { margin-bottom: 14px; }
+  .ctrl label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .ctrl .value { color: var(--muted); font-weight: 500; }
+  .ctrl input[type="range"] { width: 100%; margin: 0; }
+  .inspector-note { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-top: 18px; }
+  .inspector-note + .inspector-note { margin-top: 8px; }
+
+  /* ── bottom bar ────────────────────────────────────────────────── */
+  .bottombar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: var(--panel-bg);
+    border-top: 1px solid var(--panel-border);
+  }
+  button {
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--btn-border);
+    background: var(--panel-bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover { background: #eef1f4; }
+  button.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+  button.primary:hover { background: #2c3a46; }
+
+  .caption {
+    padding: 6px 18px 12px;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════ top bar: title + Template/Per-ID toggle + unsaved dot ═══════════ -->
+  <header class="topbar">
+    <h1>ID Card Layout Editor</h1>
+    <div class="toggle">
+      <span class="active">Template</span>
+      <a class="inactive" href="per-id.html">Per-ID</a>
+    </div>
+    <div class="spacer"></div>
+    <div class="unsaved"><span class="dot"></span>unsaved</div>
+  </header>
+
+  <div class="body">
+
+    <!-- ═══════════ left panel: layers + element list (active layer only, R10) ═══════════ -->
+    <aside class="panel">
+      <h2>Layers</h2>
+      <ul class="layers">
+        <li class="layer-text"><label><input type="radio" name="layer" value="text">text</label></li>
+        <li class="layer-doodles"><label><input type="radio" name="layer" value="doodles" checked>doodles</label></li>
+        <li class="layer-photo"><label><input type="radio" name="layer" value="photo_logo">photo/logo</label></li>
+      </ul>
+
+      <h2 class="elem-list-head">Elements</h2>
+      <p class="elem-list-sub" style="margin:-6px 0 8px; font-size:11.5px; color:var(--muted);">in active layer:</p>
+      <ul class="elem-list">
+        <li class="clickable selected">college</li>
+        <li class="clickable">friends</li>
+        <li class="clickable">tea_glass</li>
+        <li class="clickable">cassette</li>
+        <li class="more">…</li>
+      </ul>
+
+      <p class="panel-note">Only the active layer's elements are clickable. The list is the click-to-select fallback for same-layer overlaps (R10).</p>
+    </aside>
+
+    <!-- ═══════════ center: the card canvas, to scale ═══════════ -->
+    <section class="canvas-col">
+      <h2>Canvas (54 × 85.6 mm, to scale)</h2>
+
+      <div class="card">
+        <!-- dashed 2 mm safe-area guide, inset from all edges (R14) -->
+        <div class="safe-guide"></div>
+
+        <!-- college doodle — SELECTED (blue outline, R11) -->
+        <div class="el selected" style="left:22px; top:36px; width:118px; height:92px;" title="college">
+          <span class="el-label">college</span>
+          <span class="el-tag blue">selected</span>
+        </div>
+
+        <!-- logo — top-left, drawn ON TOP regardless of z (S2) -->
+        <div class="el" style="left:136px; top:26px; width:92px; height:92px;" title="logo">
+          <span class="el-label">logo</span>
+          <span class="el-tag grey">topmost</span>
+        </div>
+
+        <!-- static event text line -->
+        <div class="field title" style="left:24px; top:150px;">SMRITI 2026</div>
+
+        <!-- friends doodle — OUT OF SAFE AREA (red outline, R15), crosses the left 2 mm guide -->
+        <div class="el oob" style="left:5px; top:168px; width:86px; height:58px;" title="friends">
+          <span class="el-label">friends</span>
+          <span class="el-tag red">out of safe area</span>
+        </div>
+
+        <!-- photo box (dynamic) -->
+        <div class="el" style="left:244px; top:150px; width:120px; height:220px;" title="photo">
+          <span class="el-label">photo</span>
+        </div>
+
+        <!-- dynamic text placeholders + id badge -->
+        <div class="field name"   style="left:24px; top:430px;">NAME</div>
+        <div class="field branch" style="left:24px; top:470px;">branch</div>
+        <div class="id-badge" style="left:22px; top:505px; width:130px; height:34px;">( 1001 )</div>
+      </div>
+
+      <p class="card-caption">scale 7 px/mm · dashed guide = 2 mm safe area · boxes are placeholders</p>
+    </section>
+
+    <!-- ═══════════ right panel: inspector, scoped to the selected doodle (R12) ═══════════ -->
+    <aside class="inspector">
+      <h2>Inspector</h2>
+      <div class="selected-name">Selected: college</div>
+
+      <div class="ctrl">
+        <label for="opacity">Opacity <span class="value">80%</span></label>
+        <input type="range" id="opacity" min="0" max="100" value="80">
+      </div>
+
+      <div class="ctrl">
+        <label for="scale">Scale <span class="value">120%</span></label>
+        <input type="range" id="scale" min="10" max="300" value="120">
+      </div>
+
+      <div class="ctrl">
+        <label for="rotation">Rotation <span class="value">5°</span></label>
+        <input type="range" id="rotation" min="-180" max="180" value="5">
+      </div>
+
+      <p class="inspector-note">Controls are scoped to the selected element's kind — doodle / logo get opacity, scale, rotation (R12 table).</p>
+      <p class="inspector-note">Arrows nudge 0.5 mm, Shift+arrow 2 mm.</p>
+    </aside>
+
+  </div>
+
+  <!-- ═══════════ bottom bar ═══════════ -->
+  <footer class="bottombar">
+    <button>Reset to defaults</button>
+    <button class="primary">Save</button>
+  </footer>
+
+  <p class="caption">Red outline = crosses safe area (R15), advisory only — Save stays enabled. Logo always draws last / topmost regardless of z (S2).</p>
+
+</body>
+</html>

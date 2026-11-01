@@ -1,0 +1,34 @@
+{
+  "_comment": "Identity and per-environment URLs only. Never put feature switches here: features are changed in code (see MAKE-IT-YOURS.md). Cloudflare resource names and IDs live in src/server/wrangler.toml. Secrets live in .env.ops (git-ignored). This file is filled in with the original Smriti example values; a fork replaces them. Run `make doctor` to list the ones still left.",
+  "eventName": "Smriti 2026",
+  "eventSubtitle": "TKM College of Engineering — Batch of 2006 Reunion",
+  "eventTitle": "TKMCE 2006 Reunion",
+  "senderName": "Smriti '26 — TKMCE 2006 Reunion",
+  "githubRepo": "madaboutcode/reunion-portal",
+  "environments": {
+    "stg": {
+      "siteUrl": "https://beta.smriti2026.com",
+      "cdnUrl": "https://cdn.smriti2026.com",
+      "publicThumbsUrl": "https://betacdn.smriti2026.com",
+      "pagesProject": "stg-smriti26"
+    },
+    "prod": {
+      "siteUrl": "https://smriti2026.com",
+      "cdnUrl": "https://cdn.smriti2026.com",
+      "publicThumbsUrl": "https://cdn.smriti2026.com",
+      "pagesProject": "prod-smriti26"
+    }
+  },
+  "reports": {
+    "bucket": "",
+    "prefix": "reports"
+  },
+  "sheets": {
+    "attendance": {
+      "spreadsheetId": "",
+      "sourceTab": "Sheet1",
+      "targetTab": "Confirmed",
+      "statusColumn": "Attending Smriti Event"
+    }
+  }
+}

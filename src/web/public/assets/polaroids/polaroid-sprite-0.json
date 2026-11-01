@@ -1,0 +1,74 @@
+{
+  "sheetIndex": 0,
+  "cols": 3,
+  "rows": 3,
+  "cellWidth": 200,
+  "cellHeight": 150,
+  "sprite1x": "/assets/polaroids/polaroid-sprite-0.webp",
+  "sprite2x": "/assets/polaroids/polaroid-sprite-0-2x.webp",
+  "cells": [
+    {
+      "id": 0,
+      "col": 0,
+      "row": 0,
+      "filename": "placeholder-00.jpg",
+      "title": "Placeholder photo 1"
+    },
+    {
+      "id": 4,
+      "col": 1,
+      "row": 0,
+      "filename": "placeholder-04.jpg",
+      "title": "Placeholder photo 5"
+    },
+    {
+      "id": 8,
+      "col": 2,
+      "row": 0,
+      "filename": "placeholder-08.jpg",
+      "title": "Placeholder photo 9"
+    },
+    {
+      "id": 12,
+      "col": 0,
+      "row": 1,
+      "filename": "placeholder-12.jpg",
+      "title": "Placeholder photo 13"
+    },
+    {
+      "id": 16,
+      "col": 1,
+      "row": 1,
+      "filename": "placeholder-16.jpg",
+      "title": "Placeholder photo 17"
+    },
+    {
+      "id": 20,
+      "col": 2,
+      "row": 1,
+      "filename": "placeholder-20.jpg",
+      "title": "Placeholder photo 21"
+    },
+    {
+      "id": 24,
+      "col": 0,
+      "row": 2,
+      "filename": "placeholder-24.jpg",
+      "title": "Placeholder photo 25"
+    },
+    {
+      "id": 28,
+      "col": 1,
+      "row": 2,
+      "filename": "placeholder-28.jpg",
+      "title": "Placeholder photo 29"
+    },
+    {
+      "id": 32,
+      "col": 2,
+      "row": 2,
+      "filename": "placeholder-32.jpg",
+      "title": "Placeholder photo 33"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none">
+  <defs>
+    <g id="starburst" stroke="#f18b70" stroke-linecap="round">
+      <path d="M0-30V30M-30 0H30M-21-21L21 21M21-21L-21 21" stroke-width="4"></path>
+      <circle r="5" fill="#bde7e4" stroke="none"></circle>
+    </g>
+    <g id="dotarc" fill="#bde7e4">
+      <circle cx="0" cy="0" r="5"></circle><circle cx="24" cy="-17" r="4"></circle><circle cx="51" cy="-29" r="3.5"></circle><circle cx="80" cy="-34" r="3"></circle><circle cx="109" cy="-30" r="2.5"></circle><circle cx="137" cy="-18" r="2"></circle>
+    </g>
+    <g id="arrow" stroke="#f18b70" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 39C45 17 73 8 124 7"></path><path d="m101-9 25 16-18 23"></path>
+    </g>
+    <g id="flourish" stroke-linecap="round" fill="none">
+      <path d="M0 24c28-42 62-55 103-39 23 9 42 7 58-7" stroke="#f18b70" stroke-width="7"></path>
+      <path d="M2 38c38-22 72-25 103-10 25 12 48 8 70-9" stroke="#bde7e4" stroke-width="3"></path>
+    </g>
+  </defs>
+  <use href="#starburst" transform="translate(90 92)"></use>
+  <use href="#starburst" transform="translate(1060 112) scale(.72)"></use>
+  <use href="#starburst" transform="translate(1010 650) scale(1.18)"></use>
+  <use href="#dotarc" transform="translate(170 220) rotate(-18)"></use>
+  <use href="#dotarc" transform="translate(860 235) rotate(18)"></use>
+  <use href="#dotarc" transform="translate(275 650) rotate(165)"></use>
+  <use href="#arrow" transform="translate(330 116) rotate(-16)"></use>
+  <use href="#arrow" transform="translate(800 535) rotate(14)"></use>
+  <use href="#arrow" transform="translate(470 710) scale(.72) rotate(6)"></use>
+  <use href="#flourish" transform="translate(480 190)"></use>
+  <use href="#flourish" transform="translate(715 700) scale(.82) rotate(-10)"></use>
+</svg>

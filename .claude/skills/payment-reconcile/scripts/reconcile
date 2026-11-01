@@ -1,0 +1,415 @@
+#!/usr/bin/env bash
+# Payment reconciliation helper: data access, report upload, and staff-API write-backs.
+# Most of the flow lives in reconcile.py (pending, prematch, link, verify, report);
+# this wrapper holds the pieces that call curl or wrangler.
+#
+# The environment (stg or prod) is required on every command that reaches a remote
+# resource: there is no default. Prod prints its target (site URL, D1, bucket) first.
+#
+# READ commands:
+#   reconcile registrations <stg|prod>      Pull all registrations + payments + attendees (via d1-query)
+#   reconcile refunds <token-file> <stg|prod> [--status pending|completed]
+#                                           List refunds from the staff API
+#   reconcile proofs <stg|prod> <r2key:localname> [...]
+#                                           Download proof files from R2 to tmp/proofs/ (personal data: delete when done)
+# WRITE commands (each prints the host, endpoint and body BEFORE sending):
+#   reconcile verify <token-file> <stg|prod> <payment_id:ref:amount> [...] [--with-shortfall]
+#                                           Approve payments (sets verified + confirmed, stores ref as gateway_ref)
+#   reconcile link <token-file> <stg|prod> <bank_txn_id> <payment_id> [...]
+#                                           Link a bank transaction to payment(s)
+#   reconcile reject <token-file> <stg|prod> <payment_id> <comment>
+#                                           Reject a payment proof (the registrant is emailed)
+#   reconcile refund-complete <token-file> <stg|prod> <refund_id> <bank_ref>
+#                                           Mark a refund as paid out
+#   reconcile upload <stg|prod> <path>      Put an HTML report in R2 at <reports bucket>/<prefix>/<file>
+#                                           (needs a token with R2 write: pass it in the shell, not .env.ops)
+#
+# Settings (see scripts/site_config.py): site URL from site.config.json (environments.<env>.siteUrl);
+# account, proof bucket from src/server/wrangler.toml; reports bucket and prefix from site.config.json
+# (reports.bucket, reports.prefix); CLOUDFLARE_API_TOKEN from the process env or .env.ops.
+#
+# <token-file> holds a staff session JWT (see SKILL.md). Keep it under the repo's
+# ignored tmp/ directory, e.g. tmp/staff-jwt.txt, and delete it when you finish.
+# There is no undo for verify, link, reject or refund-complete from this script.
+set -euo pipefail
+
+usage() { sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; }
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then usage; exit 0; fi
+if [[ $# -eq 0 ]]; then usage >&2; exit 1; fi
+
+UA="Mozilla/5.0 (compatible; reunion-portal-ops/1.0)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DEVOPS="$SCRIPT_DIR/../../devops/scripts"
+PORTAL_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+SC="$PORTAL_ROOT/scripts/site-config"
+if [[ ! -x "$DEVOPS/d1-query" ]]; then
+  echo "error: $DEVOPS/d1-query not found. The payment-reconcile skill needs the devops skill next to it (.claude/skills/devops/)." >&2
+  exit 1
+fi
+
+# ── Shared: environment and settings ──────────────────────────────────────────
+
+_require_env() {  # <env>: stg or prod, never a default
+  case "${1:-}" in
+    prod|stg) ;;
+    *) echo "error: environment 'stg' or 'prod' is required (got: '${1:-}'). There is no default. See --help." >&2; exit 1 ;;
+  esac
+}
+
+# Print one non-secret setting, or exit with the key and its owner file.
+_cfg() {  # <env|global> <key>
+  "$SC" get "$1" "$2" || exit 1
+}
+
+# Print the target of a prod command to stderr.
+_target() {  # <env>
+  [[ "$1" == "prod" ]] && "$SC" target prod >&2 || true
+}
+
+# ── Layer 1: Data access ──────────────────────────────────────────────────────
+
+cmd_registrations() {
+  local env="${1:-}"
+  _require_env "$env"
+
+  local reg_sql='SELECT r.id, r.reg_code, r.full_name, r.branch, r.email, r.whatsapp,
+         r.city, r.country, r.status, r.total_amount, r.participation_type,
+         p.id as payment_id, p.status as payment_status, p.proof_file_key,
+         p.gateway_ref, p.updated_at as payment_updated_at
+  FROM registrations r
+  LEFT JOIN payments p ON p.registration_id = r.id
+  ORDER BY r.branch, r.full_name'
+
+  local att_sql='SELECT a.registration_id, a.type, a.name, a.relationship, a.is_chargeable
+  FROM attendees a ORDER BY a.registration_id'
+
+  echo "--- REGISTRATIONS ---"
+  "$DEVOPS/d1-query" "$env" "$reg_sql"
+
+  echo ""
+  echo "--- ATTENDEES ---"
+  "$DEVOPS/d1-query" "$env" "$att_sql"
+}
+
+cmd_proofs() {
+  local env=""
+  case "${1:-}" in prod|stg) env="$1"; shift ;; esac
+  _require_env "$env"
+  if [ $# -eq 0 ]; then
+    echo "Usage: reconcile proofs <stg|prod> <r2key:localname> [...]" >&2
+    echo "Example: reconcile proofs 'registrations/REGCODE/proof-15.pdf:proof-15-jane-doe.pdf'" >&2
+    exit 1
+  fi
+
+  local account_id bucket tok
+  account_id="$(_cfg "$env" accountId)"
+  bucket="$(_cfg "$env" r2Bucket)"
+  tok="$("$SC" get global CLOUDFLARE_API_TOKEN --reveal)" || exit 1   # R2 read token; never printed
+  _target "$env"
+  local base="https://api.cloudflare.com/client/v4/accounts/${account_id}/r2/buckets/${bucket}/objects"
+  local dest="$PORTAL_ROOT/tmp/proofs"
+  mkdir -p "$dest"
+  echo "Downloading from R2 bucket ${bucket} to ${dest}/ (payment proofs are personal data: delete this folder when done)"
+
+  for pair in "$@"; do
+    local key="${pair%%:*}"
+    local out="${pair##*:}"
+    out="$(basename "$out")"
+    local code
+    code=$(curl -s -o "${dest}/${out}" -w "%{http_code}" \
+      "${base}/${key}" \
+      -H "User-Agent: ${UA}" \
+      -H "Authorization: Bearer ${tok}")
+    local size
+    size=$(wc -c < "${dest}/${out}" | tr -d ' ')
+    echo "${out}: HTTP ${code}, ${size} bytes"
+  done
+}
+
+# ── Layer 2: Output ───────────────────────────────────────────────────────────
+
+cmd_upload() {
+  local env="${1:-}"
+  _require_env "$env"
+  shift
+  local file="${1:?Usage: reconcile upload <stg|prod> <path-to-html>}"
+
+  if [ ! -f "$file" ]; then
+    echo "File not found: $file" >&2
+    exit 1
+  fi
+
+  local bucket prefix account_id tok
+  bucket="$(_cfg global reportsBucket)"   # site.config.json reports.bucket: a PRIVATE bucket
+  prefix="$(_cfg global reportsPrefix)"
+  account_id="$(_cfg "$env" accountId)"
+  tok="$("$SC" get global CLOUDFLARE_API_TOKEN --reveal)" || exit 1   # must have R2 write; never printed
+  _target "$env"
+  local key="${prefix}/$(basename "$file")"
+  echo "WILL UPLOAD: ${file} -> r2://${bucket}/${key} (remote). Anyone who can read that bucket object can read the report."
+  CLOUDFLARE_API_TOKEN="$tok" CLOUDFLARE_ACCOUNT_ID="$account_id" npx wrangler r2 object put "${bucket}/${key}" --file "$file" --content-type text/html --remote
+}
+
+# ── Layer 3: Write-back (payment approval) ────────────────────────────────────
+
+# Shared: resolve the site root of an environment from site.config.json; print the target for prod
+_host() {
+  local url
+  _require_env "$1"
+  url="$(_cfg "$1" siteUrl)"
+  _target "$1"
+  echo "${url%/}"
+}
+
+# Shared: print what a write command is about to do (never prints the token)
+_announce() {  # <env> <host> <METHOD> <path> <body>
+  echo "WILL SEND [$1] $3 $2$4"
+  echo "         body: $5"
+}
+
+# Shared: read token from file
+_token() {
+  local f="${1:?token file required}"
+  [ -f "$f" ] || { echo "Token file not found: $f" >&2; exit 1; }
+  tr -d '\n\r ' < "$f"
+}
+
+# Verify a payment. actualAmount is always required.
+#   reconcile verify <token-file> <stg|prod> <payment_id:ref:amount> [--with-shortfall]
+# Amount is part of the triple: payment_id:referenceId:actualAmount
+# --with-shortfall auto-creates a balance payment for the shortfall.
+cmd_verify() {
+  local token_file="${1:?Usage: reconcile verify <token-file> <stg|prod> <pid:ref:amount> [--with-shortfall] [...]}"
+  shift
+  local env=""
+  case "${1:-}" in prod|stg) env="$1"; shift ;; esac
+  _require_env "$env"
+
+  local host; host=$(_host "$env")
+  local token; token=$(_token "$token_file")
+
+  local with_shortfall=false
+  local pairs=()
+  for arg in "$@"; do
+    case "$arg" in
+      --with-shortfall) with_shortfall=true ;;
+      *) pairs+=("$arg") ;;
+    esac
+  done
+
+  if [ ${#pairs[@]} -eq 0 ]; then
+    echo "No payment_id:ref:amount triples given." >&2
+    echo "Usage: reconcile verify <token-file> <stg|prod> <pid:ref:amount> [--with-shortfall] [...]" >&2
+    exit 1
+  fi
+
+  local ok=0 fail=0
+  for triple in "${pairs[@]}"; do
+    local pid ref amount
+    pid="${triple%%:*}"
+    local rest="${triple#*:}"
+    ref="${rest%%:*}"
+    amount="${rest#*:}"
+
+    if [ "$pid" = "$triple" ] || [ -z "$ref" ] || [ "$ref" = "$amount" ] || [ -z "$amount" ]; then
+      echo "payment ${triple}: SKIPPED — malformed (expected pid:ref:amount)" >&2
+      fail=$((fail+1)); continue
+    fi
+
+    local body
+    if [ "$with_shortfall" = "true" ]; then
+      body=$(printf '{"referenceId":"%s","actualAmount":%s,"withShortfallPayment":true}' "$ref" "$amount")
+    else
+      body=$(printf '{"referenceId":"%s","actualAmount":%s}' "$ref" "$amount")
+    fi
+
+    local resp code json
+    _announce "$env" "$host" POST "/api/staff/payments/${pid}/verify" "$body"
+    resp=$(curl -s -w $'\n%{http_code}' -X POST \
+      -H "User-Agent: ${UA}" \
+      -H "Authorization: Bearer ${token}" \
+      -H "Content-Type: application/json" \
+      -d "$body" \
+      "${host}/api/staff/payments/${pid}/verify")
+    code="${resp##*$'\n'}"
+    json="${resp%$'\n'*}"
+
+    if [ "$code" = "200" ]; then
+      echo "payment ${pid} (ref ${ref}, ₹${amount}): OK — ${json}"
+      ok=$((ok+1))
+    else
+      echo "payment ${pid} (ref ${ref}, ₹${amount}): FAILED HTTP ${code} — ${json}" >&2
+      fail=$((fail+1))
+    fi
+  done
+
+  echo "── verify summary [${env}]: ${ok} ok, ${fail} failed ──"
+  if [ "$ok" -gt 0 ]; then
+    echo ""
+    echo "⚠ Next: link each verified payment to its bank transaction:"
+    echo "  reconcile link <token-file> ${env} <bank_txn_id> <payment_id> [...]"
+  fi
+  [ "$fail" -eq 0 ]
+}
+
+# List refunds.
+#   reconcile refunds <token-file> <stg|prod> [--status pending|completed]
+cmd_refunds() {
+  local token_file="${1:?Usage: reconcile refunds <token-file> <stg|prod> [--status pending|completed]}"
+  shift
+  local env=""
+  case "${1:-}" in prod|stg) env="$1"; shift ;; esac
+  _require_env "$env"
+
+  local host; host=$(_host "$env")
+  local token; token=$(_token "$token_file")
+
+  local qs=""
+  if [ "${1:-}" = "--status" ] && [ -n "${2:-}" ]; then
+    qs="?status=$2"
+  fi
+
+  curl -s -H "User-Agent: ${UA}" -H "Authorization: Bearer ${token}" "${host}/api/staff/refunds${qs}" | python3 -m json.tool
+}
+
+# Complete a refund.
+#   reconcile refund-complete <token-file> <stg|prod> <refund_id> <bank_ref>
+cmd_refund_complete() {
+  local token_file="${1:?Usage: reconcile refund-complete <token-file> <stg|prod> <refund_id> <bank_ref>}"
+  shift
+  local env=""
+  case "${1:-}" in prod|stg) env="$1"; shift ;; esac
+  _require_env "$env"
+
+  local host; host=$(_host "$env")
+  local token; token=$(_token "$token_file")
+
+  local refund_id="${1:?refund_id required}"
+  local bank_ref="${2:?bank_ref required}"
+
+  local body resp code json
+  body=$(python3 -c 'import json,sys; print(json.dumps({"bankReference": sys.argv[1]}))' "$bank_ref")
+  _announce "$env" "$host" POST "/api/staff/refunds/${refund_id}/complete" "$body"
+  resp=$(curl -s -w $'\n%{http_code}' -X POST \
+    -H "User-Agent: ${UA}" \
+    -H "Authorization: Bearer ${token}" \
+    -H "Content-Type: application/json" \
+    -d "$body" \
+    "${host}/api/staff/refunds/${refund_id}/complete")
+  code="${resp##*$'\n'}"
+  json="${resp%$'\n'*}"
+
+  if [ "$code" = "200" ]; then
+    echo "refund ${refund_id}: COMPLETED — ${json}"
+  else
+    echo "refund ${refund_id}: FAILED HTTP ${code} — ${json}" >&2
+    exit 1
+  fi
+}
+
+# Reject a payment proof.
+#   reconcile reject <token-file> <stg|prod> <payment_id> <comment>
+cmd_reject() {
+  local token_file="${1:?Usage: reconcile reject <token-file> <stg|prod> <payment_id> <comment>}"
+  shift
+  local env=""
+  case "${1:-}" in prod|stg) env="$1"; shift ;; esac
+  _require_env "$env"
+
+  local host; host=$(_host "$env")
+  local token; token=$(_token "$token_file")
+
+  local pid="${1:?payment_id required}"
+  local comment="${2:?comment required}"
+
+  local body resp code json
+  body=$(python3 -c 'import json,sys; print(json.dumps({"comment": sys.argv[1]}))' "$comment")
+  _announce "$env" "$host" POST "/api/staff/payments/${pid}/reject" "$body"
+  resp=$(curl -s -w $'\n%{http_code}' -X POST \
+    -H "User-Agent: ${UA}" \
+    -H "Authorization: Bearer ${token}" \
+    -H "Content-Type: application/json" \
+    -d "$body" \
+    "${host}/api/staff/payments/${pid}/reject")
+  code="${resp##*$'\n'}"
+  json="${resp%$'\n'*}"
+
+  if [ "$code" = "200" ]; then
+    echo "payment ${pid}: REJECTED — ${json}"
+  else
+    echo "payment ${pid}: FAILED HTTP ${code} — ${json}" >&2
+    exit 1
+  fi
+}
+
+# ── Layer 4: Payment-bank-transaction linking ─────────────────────────────────
+
+# Link payment(s) to a bank transaction.
+#   reconcile link <token-file> <stg|prod> <bank_txn_id> <payment_id> [payment_id ...]
+cmd_link() {
+  local token_file="${1:?Usage: reconcile link <token-file> <stg|prod> <bank_txn_id> <payment_id> [...]}"
+  shift
+  local env=""
+  case "${1:-}" in prod|stg) env="$1"; shift ;; esac
+  _require_env "$env"
+
+  local host; host=$(_host "$env")
+  local token; token=$(_token "$token_file")
+
+  local bank_txn_id="${1:?bank_txn_id required}"
+  shift
+
+  if [ $# -eq 0 ]; then
+    echo "No payment_ids given." >&2
+    echo "Usage: reconcile link <token-file> <stg|prod> <bank_txn_id> <payment_id> [...]" >&2
+    exit 1
+  fi
+
+  # Build JSON array of payment IDs
+  local pids_json=""
+  for pid in "$@"; do
+    if [ -n "$pids_json" ]; then pids_json="$pids_json,"; fi
+    pids_json="$pids_json$pid"
+  done
+  local body="{\"paymentIds\":[$pids_json]}"
+
+  local resp code json
+  _announce "$env" "$host" POST "/api/staff/bank-transactions/${bank_txn_id}/link" "$body"
+  resp=$(curl -s -w $'\n%{http_code}' -X POST \
+    -H "User-Agent: ${UA}" \
+    -H "Authorization: Bearer ${token}" \
+    -H "Content-Type: application/json" \
+    -d "$body" \
+    "${host}/api/staff/bank-transactions/${bank_txn_id}/link")
+  code="${resp##*$'\n'}"
+  json="${resp%$'\n'*}"
+
+  if [ "$code" = "200" ]; then
+    echo "bank_txn ${bank_txn_id} → payments [$*]: OK — ${json}"
+  else
+    echo "bank_txn ${bank_txn_id} → payments [$*]: FAILED HTTP ${code} — ${json}" >&2
+    exit 1
+  fi
+}
+
+# ── Dispatch ──────────────────────────────────────────────────────────────────
+
+cmd="$1"
+shift
+
+case "$cmd" in
+  registrations)   cmd_registrations "$@" ;;
+  proofs)          cmd_proofs "$@" ;;
+  upload)          cmd_upload "$@" ;;
+  verify)          cmd_verify "$@" ;;
+  refunds)         cmd_refunds "$@" ;;
+  refund-complete) cmd_refund_complete "$@" ;;
+  reject)          cmd_reject "$@" ;;
+  link)            cmd_link "$@" ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    echo "Commands: registrations, proofs, upload, verify, refunds, refund-complete, reject, link" >&2
+    echo "For pending/prematch/link/verify/report from a manifest use: uv run .claude/skills/payment-reconcile/scripts/reconcile.py <cmd>" >&2
+    exit 1
+    ;;
+esac

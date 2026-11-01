@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Layer 2: Query the system audit log for common diagnostic patterns.
+#
+# Wraps d1-query with pre-built queries for the most common investigations.
+#
+# Usage:
+#   audit-log prod recent                           last 20 entries
+#   audit-log prod logins                            login success/failure
+#   audit-log prod logins --email user@example.com   for a specific user
+#   audit-log prod payments                          payment actions
+#   audit-log prod registration 1027                 all events for reg ID
+#   audit-log prod sql "SELECT ..."                  custom SQL (reads only: d1-query refuses
+#                                                      anything else; there is no --write here)
+#
+# The environment (stg or prod) is required: there is no default.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || $# -lt 2 ]]; then
+  sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
+  [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && exit 0 || exit 1
+fi
+env="$1"
+cmd="$2"
+if [[ ! "$env" =~ ^(stg|prod)$ ]]; then
+  echo "error: environment must be 'stg' or 'prod' (got: $env). There is no default." >&2
+  exit 1
+fi
+shift 2
+
+case "$cmd" in
+  recent)
+    sql="SELECT id, action, actor, target_type, target_id, details, created_at FROM system_audit_log ORDER BY id DESC LIMIT 20"
+    ;;
+
+  logins)
+    filter=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --email) email="${2//\'/\'\'}"; filter="AND actor = '${email}'"; shift 2 ;;
+        *) echo "error: unknown flag $1" >&2; exit 1 ;;
+      esac
+    done
+    sql="SELECT id, action, actor, target_type, target_id, details, created_at FROM system_audit_log WHERE (action LIKE '%login%' OR action LIKE '%payment_link%') ${filter} ORDER BY id DESC LIMIT 30"
+    ;;
+
+  payments)
+    sql="SELECT id, action, actor, target_type, target_id, details, created_at FROM system_audit_log WHERE action LIKE '%payment%' ORDER BY id DESC LIMIT 30"
+    ;;
+
+  registration)
+    reg_id="${1:?usage: audit-log <env> registration <id>}"
+    [[ "$reg_id" =~ ^[0-9]+$ ]] || { echo "error: registration id must be a number" >&2; exit 1; }
+    sql="SELECT id, action, actor, target_type, target_id, details, created_at FROM system_audit_log WHERE target_id = ${reg_id} ORDER BY id DESC LIMIT 30"
+    ;;
+
+  sql)
+    sql="${1:?usage: audit-log <env> sql \"SELECT ...\"}"
+    ;;
+
+  *)
+    echo "error: unknown command '$cmd'" >&2
+    echo "commands: recent, logins, payments, registration, sql" >&2
+    exit 1
+    ;;
+esac
+
+exec "$SCRIPT_DIR/d1-query" "$env" "$sql"

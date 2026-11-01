@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Layer 2: CI and deployment status via GitHub CLI.
+#
+# Usage:
+#   ci runs                          recent workflow runs
+#   ci runs --failed                 only failed runs
+#   ci run <id>                      detail for a specific run
+#   ci deploys                       recent deploys (release/* branch runs)
+#   ci status                        status of latest run on each release branch
+set -euo pipefail
+
+# Needs the GitHub CLI (`gh`), logged in. The repository (owner/name) comes from
+# site.config.json, key githubRepo.
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || -z "${1:-}" ]]; then
+  sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
+  [[ -z "${1:-}" ]] && exit 1 || exit 0
+fi
+cmd="$1"
+shift
+
+SC="$(cd "$(dirname "$0")/../../../.." && pwd)/scripts/site-config"
+REPO="$("$SC" get global githubRepo)" || exit 1
+
+case "$cmd" in
+  runs)
+    flags=("--limit" "10")
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --failed) flags+=("--status" "failure"); shift ;;
+        --limit)  flags[1]="$2"; shift 2 ;;
+        *) flags+=("$1"); shift ;;
+      esac
+    done
+    gh run list --repo "$REPO" "${flags[@]}"
+    ;;
+
+  run)
+    run_id="${1:?usage: ci run <run-id>}"
+    gh run view "$run_id" --repo "$REPO"
+    ;;
+
+  deploys)
+    echo "=== release/stg ==="
+    gh run list --repo "$REPO" --branch release/stg --limit 5
+    echo ""
+    echo "=== release/prod ==="
+    gh run list --repo "$REPO" --branch release/prod --limit 5
+    ;;
+
+  status)
+    echo "Staging:"
+    gh run list --repo "$REPO" --branch release/stg --limit 1
+    echo ""
+    echo "Production:"
+    gh run list --repo "$REPO" --branch release/prod --limit 1
+    ;;
+
+  *)
+    echo "error: unknown command '$cmd'" >&2
+    echo "commands: runs, run <id>, deploys, status" >&2
+    exit 1
+    ;;
+esac

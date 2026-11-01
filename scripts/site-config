@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Run scripts/site_config.py with a Python that has tomllib (3.11+).
+# Prefers `uv run`; falls back to python3 when it is 3.11 or newer (CI runners have it).
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if command -v uv >/dev/null 2>&1; then
+  exec uv run --quiet --no-project "$HERE/site_config.py" "$@"
+fi
+if python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+  exec python3 "$HERE/site_config.py" "$@"
+fi
+echo "site-config: needs uv (https://docs.astral.sh/uv/) or Python 3.11+." >&2
+exit 1

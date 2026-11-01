@@ -1,0 +1,17 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <filter id="pinShadow" x="-8" y="-7" width="52" height="52" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#593E1F" flood-opacity="0.28"/>
+  </filter>
+  <g filter="url(#pinShadow)">
+    <circle cx="18" cy="16.5" r="9.5" fill="url(#paint0_radial)"/>
+    <circle cx="14.7" cy="12.8" r="2.7" fill="#FFF1C7" fill-opacity="0.78"/>
+    <path d="M18 24.8L19.7 32.1" stroke="#8A5B22" stroke-width="1.7" stroke-linecap="round"/>
+  </g>
+  <defs>
+    <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(14 11.7) rotate(48.2) scale(16.9)">
+      <stop stop-color="#FFE6A6"/>
+      <stop offset="0.45" stop-color="#C28A3A"/>
+      <stop offset="1" stop-color="#7A4D1F"/>
+    </radialGradient>
+  </defs>
+</svg>

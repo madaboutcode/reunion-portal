@@ -1,0 +1,2 @@
+ALTER TABLE registrations ADD COLUMN breakfast_adult INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE registrations ADD COLUMN breakfast_child INTEGER NOT NULL DEFAULT 0;

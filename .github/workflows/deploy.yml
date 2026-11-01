@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - release/stg
+      - release/prod
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: make check
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'release/stg' && 'staging' || 'production' }}
+    env:
+      DEPLOY_ENV: ${{ github.ref_name == 'release/stg' && 'stg' || 'prod' }}
+      VITE_ENABLE_DEBUG: ${{ github.ref_name == 'release/stg' && 'true' || 'false' }}
+      BUILD_ID: ${{ github.sha }}-${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Download fonts
+        run: node scripts/download-fonts.mjs
+      # L1 debug-exposure lock (access-control.spec.md G8): a flag=false build
+      # must contain zero debug markers. Builds with VITE_ENABLE_DEBUG=false
+      # internally, regardless of this job's env (which is 'true' on staging).
+      - name: Assert debug code excluded from prod-mode bundle
+        run: ./scripts/assert-debug-excluded.sh
+      - name: Deploy
+        env:
+          # The only secret. Everything else (Pages project, D1 database, Worker, URLs, sender
+          # name) is read by scripts/deploy.sh from site.config.json and src/server/wrangler.toml.
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: ./scripts/deploy.sh ${{ env.DEPLOY_ENV }} all

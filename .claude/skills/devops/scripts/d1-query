@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# Run one SQL statement against a remote D1 database with wrangler.
+#
+# Usage:
+#   d1-query <stg|prod> "SELECT * FROM registrations LIMIT 5"
+#   d1-query <stg|prod> --dry-run "SELECT ..."    show the target and the guard verdict; no network
+#   d1-query <stg|prod> --write "UPDATE ..."      run a statement that changes data (see below)
+#   d1-query --help
+#
+# The environment is required: there is no default.
+#
+# Read guard: without --write, only reads run: SELECT, WITH ... SELECT, PRAGMA table_info
+# (and the other schema PRAGMAs), EXPLAIN. INSERT, UPDATE, DELETE, DROP, ALTER, CREATE,
+# multi-statement input and everything else is refused before any network call.
+# --write turns the guard off. On prod, --write outside CI also asks you to type "write prod".
+# Prod always prints its target (database, worker, bucket, URL) to stderr first.
+#
+# Settings: the database name comes from src/server/wrangler.toml (site_config.py,
+# key d1Name). The token comes from CLOUDFLARE_API_TOKEN in the process env or .env.ops.
+# Use the agent token (D1 read) here. The guard is a protection against mistakes; the
+# token's permissions are the real limit.
+#
+# Output: JSON from wrangler (--json), on stdout. Errors and the target go to stderr.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PORTAL_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"  # repo root
+SC="$PORTAL_ROOT/scripts/site-config"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+usage() { echo "usage: d1-query <stg|prod> [--write] [--dry-run] \"SQL\"   (see --help)" >&2; }
+
+env="${1:-}"
+[[ -n "$env" ]] && shift || true
+write=0
+dry=0
+sql=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --write)   write=1; shift ;;
+    --dry-run) dry=1; shift ;;
+    -*)        echo "error: unknown option '$1'" >&2; usage; exit 1 ;;
+    *)         [[ -z "$sql" ]] || { echo "error: give exactly one SQL statement" >&2; exit 1; }; sql="$1"; shift ;;
+  esac
+done
+
+if [[ -z "$env" || -z "$sql" ]]; then usage; exit 1; fi
+if [[ ! "$env" =~ ^(stg|prod)$ ]]; then
+  echo "error: environment must be 'stg' or 'prod' (got: $env). There is no default." >&2
+  exit 1
+fi
+
+# Guard first: no config lookup, no token, no network for a refused statement.
+if [[ $write -eq 0 ]]; then
+  python3 "$PORTAL_ROOT/scripts/sql_guard.py" "$sql" >/dev/null
+fi
+
+# Resolve settings (hard error names the key and the file that owns it).
+cfg="$("$SC" env "$env" --keys d1Name,workerName,r2Bucket,siteUrl)" || exit 1
+eval "$cfg"
+ENV_FLAG=()
+[[ "$env" == "prod" ]] && ENV_FLAG=(--env production)
+
+if [[ "$env" == "prod" || $dry -eq 1 ]]; then
+  {
+    echo "TARGET [$env]"
+    echo "  D1 database : $D1_DATABASE_NAME"
+    echo "  worker      : $WORKER_NAME"
+    echo "  R2 bucket   : $R2_BUCKET"
+    echo "  site URL    : $SITE_URL"
+    echo "  mode        : $([[ $write -eq 1 ]] && echo WRITE || echo read-only)"
+  } >&2
+fi
+
+if [[ $dry -eq 1 ]]; then
+  echo "dry run: statement accepted ($([[ $write -eq 1 ]] && echo 'write allowed by --write' || echo 'read')). Nothing was sent." >&2
+  exit 0
+fi
+
+# wrangler needs the real account and database IDs: stop on REPLACE_WITH_* placeholders.
+"$SC" env "$env" --keys accountId,d1Id >/dev/null || exit 1
+
+# Token: process env, then .env.ops. Never printed.
+tok="$("$SC" env "$env" --keys d1Name --secret CLOUDFLARE_API_TOKEN)" || exit 1
+eval "$tok"; unset tok
+
+if [[ $write -eq 1 && "$env" == "prod" && -z "${CI:-}" ]]; then
+  echo "About to run a WRITE statement on PRODUCTION D1 '$D1_DATABASE_NAME':" >&2
+  echo "  $sql" >&2
+  read -r -p 'Type "write prod" to continue: ' CONFIRM
+  if [[ "$CONFIRM" != "write prod" ]]; then
+    echo "d1-query: cancelled." >&2
+    exit 1
+  fi
+fi
+
+npx -w @smriti/server --prefix "$PORTAL_ROOT" \
+  wrangler d1 execute "$D1_DATABASE_NAME" --remote "${ENV_FLAG[@]}" --json --command "$sql"

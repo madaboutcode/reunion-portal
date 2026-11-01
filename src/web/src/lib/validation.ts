@@ -1,0 +1,31 @@
+export {
+  mealPreferenceSchema,
+  attendanceIntentSchema,
+  participationTypeSchema,
+  participationSchema,
+  childSchema,
+  guestSchema,
+  alumniDetailsSchema,
+  attendeesMealsSchema,
+  accommodationSchema,
+  donationSchema,
+  collegeContributionSchema,
+  givingBackSchema,
+  photoIdSchema,
+  deskSpotRegistrationSchema,
+  deskCollectPaymentSchema,
+  deskAddChargeSchema,
+} from "@smriti/shared";
+
+export type {
+  AlumniDetailsData,
+  AttendeesMealsData,
+  AccommodationData,
+  CollegeContributionData,
+  GivingBackData,
+  PhotoIdData,
+  DeskSpotRegistrationRequest,
+  DeskPaymentMethod,
+  DeskCollectPaymentRequest,
+  DeskAddChargeRequest,
+} from "@smriti/shared";

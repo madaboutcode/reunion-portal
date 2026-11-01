@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "stories-hero-candidate-04",
+  "jobId": "stories-hero",
+  "requestHash": "sha256:7dc30a98a2d3e60ee1bdc372e5044583d77b98004e8ac7468a552afadb04c840",
+  "prompt": {
+    "path": "scripts/imagegen/jobs/stories-hero/prompts/stories-hero.txt",
+    "sha256": "93bad088180e6c3ea0bbb377b8f36cf92c91dde43694920ad2c38821ae578f43"
+  },
+  "references": [],
+  "provider": {
+    "name": "gemini",
+    "model": "models/gemini-3.1-flash-lite-image"
+  },
+  "request": {
+    "unitCostEstimate": "0.0336",
+    "aspectRatio": "16:9",
+    "resolution": "1K",
+    "width": 1600,
+    "height": 900,
+    "format": "webp",
+    "quality": 90
+  },
+  "output": {
+    "sha256": "0f1ae82c14fc2e3f327c985fc7bc4d3724e1ae936896ed42ea38b349ec5d95cd",
+    "width": 1600,
+    "height": 900,
+    "mode": "RGB",
+    "format": "WEBP",
+    "bytes": 165192
+  },
+  "cost": {
+    "kind": "operator_estimate",
+    "usd": "0.0336",
+    "note": "Gemini does not report billed cost; invoice may differ"
+  },
+  "attempts": 1,
+  "elapsedSeconds": 7.32,
+  "generatedAt": "2026-08-17T13:22:38Z",
+  "requestId": null,
+  "usage": {
+    "total_tokens": 1886,
+    "total_input_tokens": 348,
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 348
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_output_tokens": 1538,
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_tool_use_tokens": 0,
+    "total_thought_tokens": 0,
+    "raw_prompt_token": 790
+  }
+}

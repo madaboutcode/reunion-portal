@@ -1,0 +1,19 @@
+Generate an editorial still-life illustration in a warm, nostalgic style for a school reunion memories page.
+
+The composition is centered on an open shared notebook lying on a warm cream paper surface. Surrounding the notebook:
+
+- A stainless steel tea tumbler (the kind used in South Indian canteens)
+- A sheet of ruled lab-record paper with faint blue lines
+- A printed bus-ticket form (the kind issued by state transport, with serial numbers and columns)
+- A fountain pen with a brass clip, cap off, resting at an angle
+- Subtle architectural geometry inspired by college corridor arches — clean curved lines framing the edges of the composition
+
+Color palette:
+- Warm cream paper base
+- Soft aqua wash (#B9DFE2) as an accent tone in shadows and the arch geometry
+- Restrained terracotta (#D76B51) accents on the bus ticket, pen clip, and notebook binding
+- Charcoal (#1F2A33) for ink marks, pen body, and line work
+
+The composition must be full-bleed 16:9, using the entire frame. The content should extend to all edges — no blank margins or borders. Keep the bottom-right corner (approximately the outer 8% of that area) simple and uncluttered — just background texture, no objects or detail there.
+
+Style: warm, painterly, slightly textured — like a magazine feature illustration. Not photorealistic. No readable generated text, no logos, no identifiable people, no heavy sepia tone, no torn-paper effects, no tape, no scrapbook clutter. The objects should feel real but illustrated, with soft directional lighting from the upper left.

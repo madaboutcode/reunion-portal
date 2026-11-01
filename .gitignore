@@ -1,0 +1,42 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+tmp/
+vite.config.js
+vite.config.d.ts
+.wrangler/
+.dev.vars
+.env
+.env.*
+# Filled-in ops config (copy of .env.ops.example). The example file itself is tracked.
+.env.ops
+!.env.ops.example
+.venv/
+src/web/public/fonts/
+src/web/src/fonts.generated.css
+src/web/public/assets/magazine/intro-frames/
+src/web/public/assets/magazine/intro-frames-mobile/
+*.pyc
+.pytest_cache/
+.crush/
+
+# ID-card mail-merge live attendee data (real names + portrait photos = PII)
+scripts/idcard-mailmerge/data/
+scripts/idcard-mailmerge/output/
+scripts/idcard-mailmerge/proof/
+scripts/idcard-mailmerge/tmp/
+
+# Generated doodle-crop manifests (machine-specific absolute paths, regenerable)
+scripts/idcard-mailmerge/assets/*/manifest.json
+
+# Local planning / scratch / generated reports
+tasks/
+reports/
+evidence/
+
+# Claude config: skills and workflows are tracked on purpose. The negation below
+# overrides a global ".claude/" ignore rule that some developers have.
+!.claude/
+.claude/settings.local.json
+src/web/build/*.d.ts
