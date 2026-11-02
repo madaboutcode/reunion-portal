@@ -6,6 +6,44 @@ It was built and used for **Smriti 2026**, the TKMCE (TKM College of Engineering
 
 **To adapt it:** start with [Make it yours in your first hour](#make-it-yours-in-your-first-hour), then [MAKE-IT-YOURS.md](./MAKE-IT-YOURS.md). You do not need to be a developer, but you do need to run commands in a terminal or hand this repository to an AI coding agent (see [AI agent support](#ai-agent-support)). Words you may not know (D1, R2, Worker, UTR, scope) are defined in the [glossary](./docs/GLOSSARY.md).
 
+## See it
+
+<!-- VIDEO SECTION: uncomment and replace VIDEO_URL_PLACEHOLDER once the GitHub attachment URL exists
+VIDEO_URL_PLACEHOLDER
+
+A 73-second tour, silent with captions. The people in it are fictional (characters from the 1990 Malayalam film *In Harihar Nagar*, plus a few invented batchmates), registered on a local copy of this repository.
+
+<details>
+<summary>What the video shows, in text</summary>
+
+The left side is an alumnus's phone; the right side is the committee's laptop. Captions, in order:
+
+1. "One batch ran its whole reunion on this." John Honai's entry pass on a phone and the public Who's Coming page.
+2. "John Honai registers in seven steps." His details, room choice and price review in the registration wizard.
+3. "The committee sees him on the list." The staff attendee list.
+4. "Mahadevan uploads his bank-transfer receipt." His payment page after upload, and the receipt in the staff view.
+5. "The treasurer checks the receipt and verifies." The bank reference is entered, Verify Payment is pressed, and his status becomes Confirmed.
+6. "Confirmed. His entry pass is on his phone." His entry pass with a QR code; the dashboard's Confirmed count goes from 3 to 4 and Money collected from ₹73,980 to ₹1,22,065.
+7. "Govindankutty and Appukuttan, matched as roommates." The room allocation page shows them matched.
+8. "Rooms tracked per night." The room availability page: rooms per night and rooms occupied.
+9. "Thomaskutty, found at the desk. One tap." On event day the desk searches "thom", opens his record and presses Confirm attendance.
+10. "A few seconds later, on the hall's wall." His photo appears on the LED wall in the Civil Engineering scene. (The wall checks for new arrivals every 3 seconds.)
+11. "After: the autograph book and awards." The after-event pages.
+12. `github.com/madaboutcode/reunion-portal`: "Fork it. Your developer or an AI agent makes it yours."
+
+</details>
+-->
+
+| | |
+|---|---|
+| ![Registration: alumni details](docs/screenshots/02-registration-alumni-details.jpg) Registration wizard, step 2 of 7 | ![Registration: choosing a room](docs/screenshots/03-registration-accommodation.jpg) Room choice with live availability |
+| ![Review and pay](docs/screenshots/04-review-and-pay.jpg) Price breakdown before payment | ![Payment page](docs/screenshots/05-payment-page.jpg) Bank-transfer instructions and receipt upload |
+| ![Entry pass](docs/screenshots/06-entry-pass.jpg) Entry pass with QR code | ![Who's coming](docs/screenshots/07-whos-coming.jpg) Public "Who's coming" page |
+| ![Staff dashboard](docs/screenshots/08-staff-dashboard.jpg) Staff dashboard: payment status and money collected | ![Payment verification](docs/screenshots/09-payment-verification.jpg) Treasurer verifies an uploaded receipt |
+| ![Registration desk](docs/screenshots/10-registration-desk.jpg) Event-day desk: attendance confirmed | ![LED wall](docs/screenshots/11-led-wall.jpg) LED wall in the hall (it shows one branch at a time) |
+
+All names, photos, phone numbers and receipts in these images are samples.
+
 ## What it does
 
 **Before the event**
