@@ -8,8 +8,7 @@ It was built and used for **Smriti 2026**, the TKMCE (TKM College of Engineering
 
 ## See it
 
-<!-- VIDEO SECTION: uncomment and replace VIDEO_URL_PLACEHOLDER once the GitHub attachment URL exists
-VIDEO_URL_PLACEHOLDER
+https://github.com/user-attachments/assets/70836329-39a3-4702-a6b8-aac8059cb19f
 
 A 73-second tour, silent with captions. The people in it are fictional (characters from the 1990 Malayalam film *In Harihar Nagar*, plus a few invented batchmates), registered on a local copy of this repository.
 
@@ -32,7 +31,6 @@ The left side is an alumnus's phone; the right side is the committee's laptop. C
 12. `github.com/madaboutcode/reunion-portal`: "Fork it. Your developer or an AI agent makes it yours."
 
 </details>
--->
 
 | | |
 |---|---|
