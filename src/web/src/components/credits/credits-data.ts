@@ -79,7 +79,7 @@ export const DEFAULT_ENTRIES: CreditEntry[] = [
   {
     kind: "person",
     dept: "Additional Programming",
-    name: "Ponnu A. Lakshmi",
+    name: "Ponnu A. Lekshmi",
     note: "Prediction Contest · Home Page · Events Pages",
     maskedSrc: PLACEHOLDER_SRC,
     revealSrc: PLACEHOLDER_SRC,

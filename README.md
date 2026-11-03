@@ -183,7 +183,7 @@ Give the agent the narrow agent token only. Never give it the deploy token.
 - Najaf Imdad
 - Rahul Krishnan
 - Aslam Abdulrahiman
-- Ponnu A. Lakshmi: additional programming (prediction contest pages, home page, events pages)
+- Ponnu A. Lekshmi: additional programming (prediction contest pages, home page, events pages)
 
 ## License
 
